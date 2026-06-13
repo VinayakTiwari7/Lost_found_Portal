@@ -3,6 +3,14 @@ import API from "../api";
 import Navbar from "../components/Navbar";
 import { Search, MapPin, Clock, Send, X, AlertCircle, UserCircle, Trash2, CheckCircle, XCircle } from "lucide-react";
 
+// Resolve image URLs: prefix /uploads paths with the backend base URL in production
+const BACKEND_BASE = (import.meta.env.VITE_API_URL || "").replace(/\/api\/?$/, "");
+function resolveImageUrl(imagePath) {
+  if (!imagePath) return null;
+  if (imagePath.startsWith("/uploads")) return `${BACKEND_BASE}${imagePath}`;
+  return imagePath;
+}
+
 export default function Dashboard() {
   const [items, setItems] = useState([]);
   const [myItems, setMyItems] = useState([]);
@@ -211,7 +219,7 @@ export default function Dashboard() {
                 {/* Image */}
                 <div className="relative h-56 w-full overflow-hidden bg-gray-900">
                   <img
-                    src={item.image || `https://source.unsplash.com/800x600/?${item.category || item.title}`}
+                    src={resolveImageUrl(item.image) || `https://source.unsplash.com/800x600/?${item.category || item.title}`}
                     alt={item.title}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 opacity-80 group-hover:opacity-100"
                     onError={(e) => {

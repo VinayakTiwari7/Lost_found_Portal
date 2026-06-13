@@ -3,6 +3,14 @@ import API from "../api";
 import Navbar from "../components/Navbar";
 import { CheckCircle, XCircle, Clock, MapPin, Search } from "lucide-react";
 
+// Resolve image URLs: prefix /uploads paths with the backend base URL in production
+const BACKEND_BASE = (import.meta.env.VITE_API_URL || "").replace(/\/api\/?$/, "");
+function resolveImageUrl(imagePath) {
+  if (!imagePath) return null;
+  if (imagePath.startsWith("/uploads")) return `${BACKEND_BASE}${imagePath}`;
+  return imagePath;
+}
+
 export default function Requests() {
   const [myClaims, setMyClaims] = useState([]);
   const [receivedClaims, setReceivedClaims] = useState([]);
@@ -150,7 +158,7 @@ function ClaimCard({ claim, type, onUpdate, statusBadge }) {
       {/* Item Image Miniature */}
       <div className="w-full md:w-32 h-32 flex-shrink-0 rounded-xl overflow-hidden bg-gray-900 border border-white/10 relative">
         <img 
-          src={claim.item.image || `https://source.unsplash.com/800x600/?${claim.item.type}`}
+          src={resolveImageUrl(claim.item.image) || `https://source.unsplash.com/800x600/?${claim.item.type}`}
           alt={claim.item.title}
           className="w-full h-full object-cover"
           onError={(e) => { e.target.src = "https://images.unsplash.com/photo-1628155930542-3c7a64e2c833?q=80&w=200&auto=format&fit=crop"; }}
