@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import API from "../api";
 import Navbar from "../components/Navbar";
-import { UploadCloud, MapPin, AlignLeft, Type, AlertCircle } from "lucide-react";
+import { UploadCloud, MapPin, AlignLeft, Type, AlertCircle, Key, Wallet, PawPrint } from "lucide-react";
 
 export default function AddItem() {
   const [title, setTitle] = useState("");
@@ -10,6 +10,7 @@ export default function AddItem() {
   const [location, setLocation] = useState("");
   const [type, setType] = useState("lost");
   const [image, setImage] = useState("");
+  const [imageFile, setImageFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -17,9 +18,9 @@ export default function AddItem() {
 
   // Simple predefined images for demonstration
   const imagePresets = [
-    { label: "Keys", url: "/images/keys.png" },
-    { label: "Wallet", url: "/images/wallet.png" },
-    { label: "Pet", url: "/images/pet.png" },
+    { label: "Keys", url: "/images/keys.png", icon: Key },
+    { label: "Wallet", url: "/images/wallet.png", icon: Wallet },
+    { label: "Pet", url: "/images/pet.png", icon: PawPrint },
     { label: "Custom URL", url: "custom" },
   ];
   const [imageType, setImageType] = useState(imagePresets[0].url);
@@ -32,13 +33,27 @@ export default function AddItem() {
     const finalImage = imageType === "custom" ? image : imageType;
 
     try {
-      await API.post("/items/add", {
-        title,
-        description,
-        location,
-        type,
-        image: finalImage,
-      });
+      if (imageType === "custom" && imageFile) {
+        const formData = new FormData();
+        formData.append("title", title);
+        formData.append("description", description);
+        formData.append("location", location);
+        formData.append("type", type);
+        formData.append("imageFile", imageFile);
+        if (image) formData.append("image", image);
+
+        await API.post("/items/add", formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+      } else {
+        await API.post("/items/add", {
+          title,
+          description,
+          location,
+          type,
+          image: finalImage,
+        });
+      }
 
       navigate("/dashboard");
     } catch (err) {
@@ -141,34 +156,43 @@ export default function AddItem() {
                     <div 
                       key={preset.url}
                       onClick={() => setImageType(preset.url)}
-                      className={`cursor-pointer rounded-xl border-2 overflow-hidden transition-all relative ${
+                      className={`cursor-pointer rounded-xl border-2 overflow-hidden transition-all relative flex flex-col items-center justify-center bg-gray-900 h-16 ${
                         imageType === preset.url ? "border-purple-500 opacity-100" : "border-white/10 opacity-50 hover:opacity-80"
                       }`}
                     >
                       {preset.url !== "custom" ? (
                         <>
-                          <img src={preset.url} alt={preset.label} className="w-full h-16 object-cover" />
-                          <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                            <span className="text-xs font-semibold text-white drop-shadow-md">{preset.label}</span>
-                          </div>
+                          {preset.icon && <preset.icon className="w-5 h-5 text-gray-400 mb-1" />}
+                          <span className="text-[10px] uppercase font-bold text-gray-400">{preset.label}</span>
                         </>
                       ) : (
-                        <div className="w-full h-16 flex flex-col items-center justify-center bg-gray-900">
+                        <>
                           <UploadCloud className="w-5 h-5 text-gray-400 mb-1" />
                           <span className="text-[10px] uppercase font-bold text-gray-400">Custom</span>
-                        </div>
+                        </>
                       )}
                     </div>
                   ))}
                 </div>
                 
                 {imageType === "custom" && (
-                  <input
-                    placeholder="Paste an image URL here..."
-                    value={image}
-                    onChange={(e) => setImage(e.target.value)}
-                    className="w-full px-4 py-3 bg-black/50 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-all mt-3"
-                  />
+                  <div className="space-y-3 mt-3">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => setImageFile(e.target.files[0])}
+                      className="w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-purple-500/20 file:text-purple-400 hover:file:bg-purple-500/30 transition-all"
+                    />
+                    <div className="flex items-center space-x-2">
+                      <span className="text-xs text-gray-500">OR</span>
+                    </div>
+                    <input
+                      placeholder="Paste an image URL here..."
+                      value={image}
+                      onChange={(e) => setImage(e.target.value)}
+                      className="w-full px-4 py-3 bg-black/50 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-all mt-3"
+                    />
+                  </div>
                 )}
               </div>
 

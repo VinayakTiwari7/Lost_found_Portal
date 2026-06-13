@@ -69,6 +69,18 @@ export default function Dashboard() {
     }
   };
 
+  const handleSelfResolve = async (itemId) => {
+    if (!window.confirm("Mark this item as resolved? This will close any pending claims.")) return;
+    try {
+      const res = await API.patch(`/items/${itemId}/resolve`);
+      // Update item status locally
+      setItems(prev => prev.map(i => i._id === itemId ? { ...i, status: res.data.item.status, helper: res.data.item.helper } : i));
+      setMyItems(prev => prev.map(i => i._id === itemId ? { ...i, status: res.data.item.status, helper: res.data.item.helper } : i));
+    } catch (err) {
+      alert(err.response?.data?.message || err.response?.data?.error || "Failed to resolve item.");
+    }
+  };
+
   const filteredItems = items.filter((item) => {
     const matchesFilter = filter === "all" || item.type === filter;
     const matchesSearch =
@@ -271,6 +283,17 @@ export default function Dashboard() {
                         <div className="w-full py-2.5 text-center text-sm font-medium text-blue-400 bg-blue-500/10 rounded-xl border border-blue-500/20">
                           ✓ Item Resolved
                         </div>
+                      )}
+
+                      {/* Self Resolve — only for open items that ARE yours */}
+                      {item.status === "open" && item.user?._id === (user?.id || user?._id) && (
+                        <button
+                          onClick={() => handleSelfResolve(item._id)}
+                          className="w-full py-2.5 rounded-xl text-sm font-semibold text-blue-400 bg-blue-500/10 border border-blue-500/20 hover:bg-blue-500/20 transition-all flex items-center justify-center space-x-2"
+                        >
+                          <CheckCircle className="w-4 h-4" />
+                          <span>{item.type === "lost" ? "I Found It" : "Returned to Owner"}</span>
+                        </button>
                       )}
 
                       {item.user?._id === (user?.id || user?._id) && (

@@ -4,10 +4,6 @@ require('dotenv').config();
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
-const fs = require("fs");
-const path = require("path");
-const https = require("https");
-const http = require("http");
 
 const authRoutes = require("./routes/authRoutes");
 const itemRoutes = require("./routes/itemRoutes");
@@ -18,7 +14,6 @@ const app = express();
 
 const allowedOrigins = [
   "http://localhost:5173",
-  "https://localhost:5173",
 ];
 
 app.use(cors({
@@ -32,12 +27,19 @@ app.use(cors({
   credentials: true,
 }));
 
+const path = require("path");
+
 app.use(express.json());
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 app.use("/api/auth", authRoutes);
 app.use("/api/items", itemRoutes);
 app.use("/api/claims", claimRoutes);
 app.use("/api/admin", adminRoutes);
+
+app.get("/", (req, res) => {
+  res.send("Lost & Found API is running");
+});
 
 app.get("/api/health", (req, res) => {
   const states = { 0: "disconnected", 1: "connected", 2: "connecting", 3: "disconnecting" };
@@ -45,7 +47,6 @@ app.get("/api/health", (req, res) => {
 });
 
 const PORT = process.env.PORT || 5000;
-const HTTPS_PORT = process.env.HTTPS_PORT || 5443;
 const MONGO_URL = process.env.MONGO_URL;
 
 if (!MONGO_URL) {
@@ -69,26 +70,9 @@ async function startServer() {
     const testCount = await User.countDocuments();
     console.log("✅ Model test OK — users in DB:", testCount);
 
-    // ── HTTP Server (always starts) ──────────────────────────────────────
-    http.createServer(app).listen(PORT, () => {
-      console.log(`🚀 HTTP  Server → http://localhost:${PORT}`);
+    app.listen(PORT, () => {
+      console.log(`🚀 HTTP Server → http://localhost:${PORT}`);
     });
-
-    // ── HTTPS Server (starts only if certs are present) ──────────────────
-    const keyPath  = process.env.SSL_KEY_PATH  || path.join(__dirname, "certs", "localhost-key.pem");
-    const certPath = process.env.SSL_CERT_PATH || path.join(__dirname, "certs", "localhost.pem");
-
-    if (fs.existsSync(keyPath) && fs.existsSync(certPath)) {
-      const sslOptions = {
-        key:  fs.readFileSync(keyPath),
-        cert: fs.readFileSync(certPath),
-      };
-      https.createServer(sslOptions, app).listen(HTTPS_PORT, () => {
-        console.log(`🔒 HTTPS Server → https://localhost:${HTTPS_PORT}`);
-      });
-    } else {
-      console.log("ℹ️  No SSL certs found — HTTPS skipped. Run 'npm run gen-certs' to enable.");
-    }
 
   } catch (err) {
     console.error("❌ Failed to start server:", err.message);
