@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import API from "../api";
-import { Mail, Lock, ArrowRight, AlertCircle, LogIn } from "lucide-react";
+import { Mail, Lock, ArrowRight, AlertCircle, Search } from "lucide-react";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -41,13 +41,16 @@ export default function Login() {
 
       <div className="w-full max-w-md relative z-10">
         <div className="text-center mb-10">
-          <div className="inline-flex items-center justify-center p-3 bg-white/5 rounded-2xl border border-white/10 mb-6 shadow-2xl backdrop-blur-sm">
-            <LogIn className="w-8 h-8 text-purple-400" />
+          <div className="inline-flex items-center justify-center bg-gradient-to-tr from-purple-600 to-blue-500 p-3 rounded-2xl mb-6 shadow-2xl shadow-purple-500/30">
+            <Search className="w-8 h-8 text-white" />
           </div>
+          <h3 className="text-lg font-bold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent mb-2">
+            Lost&Found
+          </h3>
           <h2 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-400">
             Welcome Back
           </h2>
-          <p className="text-gray-400 mt-3 text-lg">Enter your details to access your account.</p>
+          <p className="text-gray-400 mt-3 text-lg">Sign in to report or claim items on campus.</p>
         </div>
 
         <div className="bg-white/5 backdrop-blur-xl border border-white/10 p-8 rounded-3xl shadow-2xl relative overflow-hidden">
