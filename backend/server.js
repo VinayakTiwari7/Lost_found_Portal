@@ -14,7 +14,7 @@ const app = express();
 
 const allowedOrigins = [
   "http://localhost:5173",
-  "https://lostfound-frontend.vercel.app",
+  "https://lost-found-portal-two.vercel.app",
 ];
 
 app.use(cors({
